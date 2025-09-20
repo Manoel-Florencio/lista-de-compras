@@ -5,6 +5,7 @@ import { Home } from './pages/Home';
 import { History } from './pages/History';
 import { Settings } from './pages/Settings';
 import { useShoppingList } from './hooks/useShoppingList';
+import { Toaster } from 'sonner';
 import './App.css';
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
     listName,
     stats,
     addItem,
+    addMultipleItems,
     toggleItem,
     restoreItem,
     removeItem,
@@ -86,6 +88,8 @@ function App() {
             onClearAll={clearAll}
             onExportData={handleExportData}
             onImportData={handleImportData}
+            onAddItems={addItem}
+            onAddMultipleItems={addMultipleItems} 
           />
         );
       default:
@@ -116,6 +120,7 @@ function App() {
           </motion.div>
         </AnimatePresence>
       </main>
+       <Toaster />
     </div>
   );
 }

@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Palette, 
-  Download, 
-  Upload, 
-  Trash2, 
-  Info, 
+import { RecipeImporter } from '../components/RecipeImporter';
+import {
+  Palette,
+  Download,
+  Upload,
+  Trash2,
+  Info,
   Smartphone,
   Heart,
   Github
@@ -14,14 +15,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 
-export function Settings({ 
-  listName, 
-  onListNameChange, 
-  stats, 
-  onClearAll,
-  onExportData,
-  onImportData 
-}) {
+export function Settings({ listName, onListNameChange, stats, onClearAll, onExportData, onImportData, onAddItems, onAddMultipleItems }) {
   const [tempListName, setTempListName] = useState(listName);
 
   const handleNameSave = () => {
@@ -36,7 +30,7 @@ export function Settings({
       exportDate: new Date().toISOString(),
       stats,
     };
-    
+
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -85,7 +79,7 @@ export function Settings({
             <Palette className="w-5 h-5 text-accent" />
             <h3 className="font-medium">Personalização</h3>
           </div>
-          
+
           <div className="space-y-4">
             <div>
               <Label htmlFor="listName" className="text-sm font-medium">
@@ -99,7 +93,7 @@ export function Settings({
                   placeholder="Nome da sua lista"
                   className="flex-1"
                 />
-                <Button 
+                <Button
                   onClick={handleNameSave}
                   disabled={!tempListName.trim() || tempListName === listName}
                   size="sm"
@@ -110,6 +104,8 @@ export function Settings({
             </div>
           </div>
         </motion.section>
+
+         <RecipeImporter onAddItems={onAddMultipleItems} />
 
         {/* Estatísticas */}
         <motion.section
@@ -122,7 +118,7 @@ export function Settings({
             <Info className="w-5 h-5 text-accent" />
             <h3 className="font-medium">Estatísticas</h3>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="text-center p-3 bg-secondary rounded-lg">
               <div className="text-2xl font-bold text-accent">{stats.totalItems}</div>
@@ -135,6 +131,9 @@ export function Settings({
           </div>
         </motion.section>
 
+        {/* Importar Receita */}
+        <RecipeImporter onAddItems={onAddItems} />
+
         {/* Backup e Dados */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
@@ -146,17 +145,17 @@ export function Settings({
             <Download className="w-5 h-5 text-accent" />
             <h3 className="font-medium">Backup e Dados</h3>
           </div>
-          
+
           <div className="space-y-3">
-            <Button 
+            <Button
               onClick={handleExport}
-              variant="outline" 
+              variant="outline"
               className="w-full justify-start"
             >
               <Download className="w-4 h-4 mr-2" />
               Exportar dados
             </Button>
-            
+
             <div>
               <input
                 type="file"
@@ -165,9 +164,9 @@ export function Settings({
                 className="hidden"
                 id="import-file"
               />
-              <Button 
+              <Button
                 onClick={() => document.getElementById('import-file').click()}
-                variant="outline" 
+                variant="outline"
                 className="w-full justify-start"
               >
                 <Upload className="w-4 h-4 mr-2" />
@@ -188,14 +187,14 @@ export function Settings({
             <Smartphone className="w-5 h-5 text-accent" />
             <h3 className="font-medium">Instalação</h3>
           </div>
-          
+
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
               Instale este app em seu dispositivo para uma experiência melhor.
             </p>
-            <Button 
+            <Button
               onClick={installPWA}
-              variant="outline" 
+              variant="outline"
               className="w-full justify-start"
             >
               <Smartphone className="w-4 h-4 mr-2" />
@@ -215,18 +214,18 @@ export function Settings({
             <Trash2 className="w-5 h-5 text-destructive" />
             <h3 className="font-medium text-destructive">Zona de Perigo</h3>
           </div>
-          
+
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
               Esta ação não pode ser desfeita. Todos os seus dados serão perdidos.
             </p>
-            <Button 
+            <Button
               onClick={() => {
                 if (window.confirm('Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.')) {
                   onClearAll();
                 }
               }}
-              variant="destructive" 
+              variant="destructive"
               className="w-full"
             >
               <Trash2 className="w-4 h-4 mr-2" />
@@ -246,7 +245,7 @@ export function Settings({
             <Heart className="w-5 h-5 text-accent" />
             <h3 className="font-medium">Sobre</h3>
           </div>
-          
+
           <div className="space-y-2 text-sm text-muted-foreground">
             <p>Lista de Compras v1.0</p>
             <p>Desenvolvido com React e muito ❤️</p>

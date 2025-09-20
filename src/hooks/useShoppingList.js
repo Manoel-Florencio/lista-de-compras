@@ -1,5 +1,5 @@
 import { useLocalStorage } from './useLocalStorage';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 export function useShoppingList() {
   const [items, setItems] = useLocalStorage('shopping-list-items', []);
@@ -7,90 +7,96 @@ export function useShoppingList() {
   const [listName, setListName] = useLocalStorage('shopping-list-name', 'Minha Lista de Compras');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Adicionar novo item
-  const addItem = (itemName) => {
-    if (!itemName.trim()) return;
-    
+  // Adicionar um único item
+  const addItem = useCallback((itemName) => {
+    if (!itemName || !itemName.trim()) return;
+
     const newItem = {
-      id: Date.now().toString(),
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: itemName.trim(),
       completed: false,
       createdAt: new Date().toISOString(),
     };
 
     setItems(prevItems => [newItem, ...prevItems]);
-  };
+  }, [setItems]);
 
-  // Marcar item como comprado
-  const toggleItem = (itemId) => {
+  // **NOVA FUNÇÃO para adicionar múltiplos itens de uma vez**
+  const addMultipleItems = useCallback((itemNames) => {
+    if (!itemNames || itemNames.length === 0) return;
+
+    const newItems = itemNames.map((name, index) => ({
+      id: `${Date.now()}-${index}-${Math.random().toString(36).substr(2, 9)}`,
+      name: name.trim(),
+      completed: false,
+      createdAt: new Date().toISOString(),
+    }));
+
+    // Atualiza o estado de uma só vez, garantindo que todos os itens sejam adicionados
+    setItems(prevItems => [...newItems, ...prevItems]);
+  }, [setItems]);
+
+  // ... (o resto do seu código: toggleItem, restoreItem, etc. pode continuar o mesmo)
+
+  const toggleItem = useCallback((itemId) => {
     const item = items.find(item => item.id === itemId);
     if (!item) return;
 
-    // Remove da lista principal
     setItems(prevItems => prevItems.filter(item => item.id !== itemId));
-    
-    // Adiciona à lista de comprados
+
     const completedItem = {
       ...item,
       completed: true,
       completedAt: new Date().toISOString(),
     };
-    
-    setCompletedItems(prevCompleted => [completedItem, ...prevCompleted]);
-  };
 
-  // Restaurar item da lista de comprados
-  const restoreItem = (itemId) => {
+    setCompletedItems(prevCompleted => [completedItem, ...prevCompleted]);
+  }, [items, setItems, setCompletedItems]);
+
+  const restoreItem = useCallback((itemId) => {
     const item = completedItems.find(item => item.id === itemId);
     if (!item) return;
 
-    // Remove da lista de comprados
     setCompletedItems(prevCompleted => prevCompleted.filter(item => item.id !== itemId));
-    
-    // Adiciona de volta à lista principal
+
     const restoredItem = {
       ...item,
       completed: false,
       completedAt: null,
     };
-    
-    setItems(prevItems => [restoredItem, ...prevItems]);
-  };
 
-  // Remover item permanentemente
-  const removeItem = (itemId, fromCompleted = false) => {
+    setItems(prevItems => [restoredItem, ...prevItems]);
+  }, [completedItems, setCompletedItems, setItems]);
+
+  const removeItem = useCallback((itemId, fromCompleted = false) => {
     if (fromCompleted) {
       setCompletedItems(prevCompleted => prevCompleted.filter(item => item.id !== itemId));
     } else {
       setItems(prevItems => prevItems.filter(item => item.id !== itemId));
     }
-  };
+  }, [setCompletedItems, setItems]);
 
-  // Editar nome do item
-  const editItem = (itemId, newName) => {
+  const editItem = useCallback((itemId, newName) => {
     if (!newName.trim()) return;
-    
-    setItems(prevItems => 
-      prevItems.map(item => 
-        item.id === itemId 
+
+    setItems(prevItems =>
+      prevItems.map(item =>
+        item.id === itemId
           ? { ...item, name: newName.trim() }
           : item
       )
     );
-  };
+  }, [setItems]);
 
-  // Limpar lista de comprados
-  const clearCompleted = () => {
+  const clearCompleted = useCallback(() => {
     setCompletedItems([]);
-  };
+  }, [setCompletedItems]);
 
-  // Limpar toda a lista
-  const clearAll = () => {
+  const clearAll = useCallback(() => {
     setItems([]);
     setCompletedItems([]);
-  };
+  }, [setItems, setCompletedItems]);
 
-  // Estatísticas
   const stats = {
     totalItems: items.length,
     completedCount: completedItems.length,
@@ -98,15 +104,15 @@ export function useShoppingList() {
   };
 
   return {
-    // Estado
     items,
     completedItems,
     listName,
     isLoading,
     stats,
-    
+
     // Ações
     addItem,
+    addMultipleItems, // **Exportar a nova função**
     toggleItem,
     restoreItem,
     removeItem,
@@ -116,4 +122,3 @@ export function useShoppingList() {
     setListName,
   };
 }
-
